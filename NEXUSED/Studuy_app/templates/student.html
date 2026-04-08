@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}NexusEd Student{% endblock %}
+
+{% block content %}
+<div class="h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 font-sans relative">
+
+    <!-- Ambient Background (Subtle Light) -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-40">
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px]">
+        </div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-100 rounded-full blur-[100px]">
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden z-10 relative">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="w-20 lg:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between py-6 z-20 transition-all duration-300 shadow-xl">
+            <div class="flex flex-col items-center lg:items-start px-2 lg:px-6 gap-8">
+                <!-- Branding -->
+                <div class="flex items-center gap-3">
+                    <div
+                        class="size-10 rounded-xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-500/20 shrink-0">
+                        <span class="material-symbols-rounded text-white">school</span>
+                    </div>
+                    <span class="text-xl font-bold text-white hidden lg:block">NexusEd</span>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="flex flex-col gap-2 w-full">
+                    <button onclick="switchView('courses')" id="nav-courses"
+                        class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">grid_view</span>
+                        <span class="font-medium hidden lg:block">Courses</span>
+                    </button>
+                    <a href="/student/plans_page" id="nav-plans"
+                        class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">folder_open</span>
+                        <span class="font-medium hidden lg:block">Working Plans</span>
+                    </a>
+                    <button onclick="switchView('community')" id="nav-community"
+                        class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">forum</span>
+                        <span class="font-medium hidden lg:block">Community</span>
+                    </button>
+                    <button onclick="switchView('progress')" id="nav-progress"
+                        class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">monitoring</span>
+                        <span class="font-medium hidden lg:block">Progress</span>
+                    </button>
+                    <button onclick="switchView('collaborate')" id="nav-collaborate"
+                        class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">groups</span>
+                        <span class="font-medium hidden lg:block">Collaborate</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- User Bottom -->
+            <div class="px-2 lg:px-6">
+                <a href="/logout"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all w-full justify-center lg:justify-start">
+                    <span class="material-symbols-rounded text-2xl">logout</span>
+                    <span class="font-medium hidden lg:block">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative overflow-hidden">
+
+            <!-- VIEW 1: COURSES GRID (Default) -->
+            <div id="view-courses"
+                class="view-section flex-1 flex flex-col p-4 sm:p-6 lg:p-8 z-10 transition-all duration-500 ease-in-out">
+                <header class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">
+                            NexusEd Courses</h1>
+                        <p class="text-slate-500 text-sm">Select a subject to start learning</p>
+                    </div>
+                </header>
+
+                <div
+                    class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-y-auto pb-20 no-scrollbar">
+                    {% if topics %}
+                    {% for topic in topics %}
+                    <div onclick="openTopic('{{ topic }}')"
+                        class="group relative bg-white rounded-2xl p-6 overflow-hidden cursor-pointer border border-slate-200 shadow-sm hover:shadow-lg hover:border-primary-500/30 transition-all duration-300 transform hover:-translate-y-1">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-b from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        </div>
+                        <div class="relative z-10 flex flex-col h-full justify-between">
+                            <div>
+                                <div class="flex justify-between items-start mb-4">
+                                    <div
+                                        class="size-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300">
+                                        <span class="material-symbols-rounded text-2xl">menu_book</span>
+                                    </div>
+                                </div>
+                                <h3
+                                    class="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">
+                                    {{ topic }}</h3>
+                                <p class="text-xs text-slate-500 mb-4 line-clamp-2">Click to start AI chat session.</p>
+                            </div>
+                            <button onclick="event.stopPropagation(); openTopic('{{ topic }}')"
+                                class="mt-4 w-full bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-rounded text-sm">chat</span>
+                                Start Chat
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+                        <span class="material-symbols-rounded text-4xl mb-4 opacity-50">library_add</span>
+                        <p>No courses available yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- VIEW 2: PLANS -->
+            <div id="view-plans" class="view-section hidden flex-col p-4 sm:p-6 lg:p-8 z-10 h-full overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-white">Working Plans</h1>
+                    <p class="text-slate-400 text-sm">Resources & Guides from your Organization</p>
+                </header>
+                <div id="student-plans-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-slate-500 col-span-full text-center py-10">Loading plans...</p>
+                </div>
+            </div>
+
+            <!-- VIEW 3: COMMUNITY -->
+            <div id="view-community" class="view-section hidden flex-col p-4 sm:p-6 lg:p-8 z-10 h-full overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-white">Community Forum</h1>
+                    <p class="text-slate-400 text-sm">Discussions & Peer Learning</p>
+                </header>
+                <div class="flex gap-4 mb-6">
+                    <select id="communityTopicSelect" onchange="loadCommunity()"
+                        class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-slate-700 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Topic...</option>
+                    </select>
+                    <button onclick="openPostModal()"
+                        class="bg-primary-600 hover:bg-primary-500 text-white rounded-xl px-4 py-2 font-medium transition-colors">+
+                        New Post</button>
+                </div>
+                <div id="community-posts-container" class="space-y-4 pb-20">
+                    <div class="text-center text-slate-500 mt-10">Select a topic to view discussions.</div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: PROGRESS & ANALYTICS -->
+            <div id="view-progress" class="view-section hidden flex-col p-4 sm:p-6 lg:p-8 z-10 h-full overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-slate-900">My Learning Path</h1>
+                    <p class="text-slate-500 text-sm">Track your XP and AI Success Insights</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- XP Card -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><span
+                                class="material-symbols-rounded text-6xl text-primary-500">military_tech</span></div>
+                        <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-2">Total XP</h3>
+                        <div class="text-4xl font-bold text-slate-900 mb-1" id="display-xp">0</div>
+                        <p class="text-xs text-primary-600 font-medium">Level <span id="display-level">1</span></p>
+                    </div>
+
+                    <!-- AI Analytics Card -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden"
+                        id="ai-analytics-card">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><span
+                                class="material-symbols-rounded text-6xl text-indigo-500">psychology</span></div>
+                        <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-2">AI Success
+                            Predictor</h3>
+                        <div id="ai-prediction-content">
+                            <p class="text-slate-500 text-sm animate-pulse">Analyzing your progress...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: CHAT (Hidden) -->
+            <div id="view-chat"
+                class="absolute inset-0 z-20 bg-slate-50 flex flex-col translate-x-full transition-transform duration-500 ease-in-out">
+                <!-- Chat Header -->
+                <header
+                    class="glass-header z-20 shrink-0 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+                    -200 shadow-sm">
+                    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <button onclick="closeTopic()"
+                                class="size-10 rounded-xl hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-500 hover:text-slate-900 border border-transparent hover:border-slate-200">
+                                <span class="material-symbols-rounded">arrow_back_ios_new</span>
+                            </button>
+                            <div>
+                                <h1 class="font-bold text-lg leading-tight text-slate-900 mb-0.5" id="chat-title">Course
+                                    Chat</h1>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <main class="flex-1 overflow-y-auto p-4 space-y-6 max-w-3xl mx-auto w-full" id="chat-container">
+                    <!-- Messages injected by script.js -->
+                </main>
+                <footer
+                    class="glass-input-container p-4 shrink-0 pb-6 border-t border-slate-200 bg-white/90 backdrop-blur-md">
+                    <div class="max-w-3xl mx-auto">
+                        <form id="chatForm" onsubmit="handleChat(event)" class="relative flex items-end gap-2">
+                            <input type="text" id="userQuestion" placeholder="Ask a question..."
+                                class="flex-1 bg-white border border-slate-200 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 shadow-sm">
+                            <button type="submit"
+                                class="bg-primary-600 hover:bg-primary-500 text-white rounded-xl p-3 shadow-lg shadow-primary-500/20"><span
+                                    class="material-symbols-rounded">send</span></button>
+                        </form>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- VIEW 6: COLLABORATE -->
+            <div id="view-collaborate"
+                class="view-section hidden flex-col p-4 sm:p-6 lg:p-8 z-10 h-full overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-slate-900">Groups</h1>
+                </header>
+                <p class="text-slate-500">Feature not loaded in this preview.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Plan Summary Modal -->
+    <div id="plan-summary-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePlanModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6">
+            <div
+                class="bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-start">
+                    <h3 class="text-xl font-bold text-slate-900 pr-4" id="modal-plan-title">Plan Title</h3>
+                    <button onclick="closePlanModal()" class="text-slate-400 hover:text-slate-800">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap" id="modal-plan-summary">
+                        Summary content...
+                    </p>
+                </div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100 text-right">
+                    <button onclick="closePlanModal()"
+                        class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Local Script Logic
+    // Using tojson to safely serialize the username string
+    window.currentUser = {{ user.username | tojson }};
+
+    function switchView(viewName) {
+        console.log("Switching view to:", viewName);
+        // Hide all views
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('#view-chat').forEach(el => el.classList.add('translate-x-full')); // Ensure chat is hidden
+
+        // Show selected view
+        const view = document.getElementById('view-' + viewName);
+        if (view) view.classList.remove('hidden');
+
+        // Update Nav Active State
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'bg-white/5', 'text-white'));
+        const navBtn = document.getElementById('nav-' + viewName);
+        if (navBtn) navBtn.classList.add('active', 'bg-white/5', 'text-white');
+
+        if (viewName === 'progress') loadStudentAnalytics();
+        if (viewName === 'plans') loadStudentPlans();
+    }
+
+    async function loadStudentAnalytics() {
+        const content = document.getElementById('ai-prediction-content');
+        if (!content) return;
+
+        // Reset to loading state if needed, or keep previous state? 
+        // Better to show loading again to indicate refresh.
+        content.innerHTML = '<p class="text-slate-500 text-sm animate-pulse">Running AI Analysis...</p>';
+
+        try {
+            const res = await fetch('/api/student/analytics');
+            if (!res.ok) throw new Error("API returned " + res.status);
+
+            const data = await res.json();
+            const pred = data.prediction;
+
+            let colorClass = "text-green-400";
+            if (pred.label === "At Risk") colorClass = "text-red-400 animate-pulse";
+            if (pred.label === "Stable") colorClass = "text-yellow-400";
+
+            content.innerHTML = `
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="text-3xl font-bold ${colorClass}">${pred.label}</div>
+                </div>
+                <p class="text-sm text-slate-300 font-medium italic">"${pred.msg}"</p>
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-500 border-t border-white/5 pt-2">
+                    <div>Activity Score: ${data.metrics.active_days}</div>
+                    <div>Avg Quiz: ${Math.round(data.metrics.avg_quiz_score)}%</div>
+                </div>
+            `;
+        } catch (e) {
+            console.error(e);
+            content.innerHTML = '<p class="text-red-400 text-sm">Error loading analytics. Please try again later.</p>';
+        }
+    }
+
+    let globalPlans = [];
+
+    async function loadStudentPlans() {
+        const container = document.getElementById('student-plans-list');
+        try {
+            const res = await fetch('/api/student/plans');
+            const data = await res.json();
+            globalPlans = data; // Store for modal access
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">No working plans available.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map((plan, index) => `
+                <div class="bg-glass-card rounded-2xl p-6 border border-white/5 hover:border-primary-500/30 transition-all group flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="p-2 bg-primary-500/10 rounded-lg text-primary-400"><span class="material-symbols-rounded">article</span></span>
+                            <span class="text-[10px] text-slate-500">${new Date(plan.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <h3 class="font-bold text-white text-lg group-hover:text-primary-400 transition-colors line-clamp-2">${plan.title}</h3>
+                        <p class="text-xs text-slate-400 mt-2 line-clamp-3">${plan.summary || 'No summary available.'}</p>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                         <a href="${plan.content}" target="_blank" class="flex-1 flex items-center justify-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-colors border border-white/10 hover:bg-white/5 px-3 py-2 rounded-lg">
+                            <span class="material-symbols-rounded text-sm">visibility</span> Read
+                        </a>
+                        <button onclick="openPlanSummary(${index})" class="flex-1 flex items-center justify-center gap-2 text-xs font-bold text-white bg-primary-600 hover:bg-primary-500 transition-colors px-3 py-2 rounded-lg">
+                            <span class="material-symbols-rounded text-sm">info</span> Summary
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<p class="text-red-400 text-center">Error fetching plans.</p>';
+        }
+    }
+
+    function openPlanSummary(index) {
+        const plan = globalPlans[index];
+        if (!plan) return;
+
+        const modal = document.getElementById('plan-summary-modal');
+        document.getElementById('modal-plan-title').textContent = plan.title;
+        document.getElementById('modal-plan-summary').textContent = plan.summary || "No summary available.";
+        modal.classList.remove('hidden');
+    }
+
+    function closePlanModal() {
+        document.getElementById('plan-summary-modal').classList.add('hidden');
+    }
+
+    // Assign global scope for debugging
+    window.loadStudentAnalytics = loadStudentAnalytics;
+    window.loadStudentPlans = loadStudentPlans;
+</script>
+
+<style>
+    .bg-glass-card {
+        background: rgba(24, 27, 37, 0.6);
+        backdrop-filter: blur(12px);
+    }
+</style>
+{% endblock %}

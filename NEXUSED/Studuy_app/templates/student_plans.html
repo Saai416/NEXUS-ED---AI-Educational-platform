@@ -1,0 +1,167 @@
+```
+{% extends "base.html" %}
+
+{% block title %}Working Plans - NexusEd{% endblock %}
+
+{% block content %}
+<div class="h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-800 font-sans relative">
+
+    <!-- Ambient Background (Subtle Light) -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-40">
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px]">
+        </div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-100 rounded-full blur-[100px]">
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden z-10 relative">
+        <!-- Sidebar Navigation (Simplified for sub-pages) -->
+        <aside
+            class="w-20 lg:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between py-6 z-20 transition-all duration-300 shadow-xl">
+            <div class="flex flex-col items-center lg:items-start px-2 lg:px-6 gap-8">
+                <!-- Branding -->
+                <a href="/student" class="flex items-center gap-3">
+                    <div
+                        class="size-10 rounded-xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-500/20 shrink-0">
+                        <span class="material-symbols-rounded text-white">school</span>
+                    </div>
+                    <span class="text-xl font-bold text-white hidden lg:block">NexusEd</span>
+                </a>
+
+                <!-- Nav Links -->
+                <nav class="flex flex-col gap-2 w-full">
+                    <a href="/student"
+                        class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">arrow_back</span>
+                        <span class="font-medium hidden lg:block">Back to Dashboard</span>
+                    </a>
+                    <div
+                        class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl bg-white/10 text-white w-full justify-center lg:justify-start">
+                        <span class="material-symbols-rounded text-2xl">folder_open</span>
+                        <span class="font-medium hidden lg:block">Working Plans</span>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- User Bottom -->
+            <div class="px-2 lg:px-6">
+                <a href="/logout"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all w-full justify-center lg:justify-start">
+                    <span class="material-symbols-rounded text-2xl">logout</span>
+                    <span class="font-medium hidden lg:block">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative overflow-hidden flex flex-col">
+            <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 z-10 overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-slate-900">Working Plans</h1>
+                    <p class="text-slate-500 text-sm">Resources & Guides from your Organization</p>
+                </header>
+
+                <div id="student-plans-list"
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                    <p class="text-slate-500 col-span-full text-center py-10">Loading plans...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Plan Summary Modal -->
+    <div id="plan-summary-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePlanModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6">
+            <div
+                class="bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-start">
+                    <h3 class="text-xl font-bold text-slate-900 pr-4" id="modal-plan-title">Plan Title</h3>
+                    <button onclick="closePlanModal()" class="text-slate-400 hover:text-slate-800">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap" id="modal-plan-summary">
+                        Summary content...
+                    </p>
+                </div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100 text-right">
+                    <button onclick="closePlanModal()"
+                        class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let globalPlans = [];
+
+    // Load plans primarily on page load
+    document.addEventListener('DOMContentLoaded', loadStudentPlans);
+
+    async function loadStudentPlans() {
+        const container = document.getElementById('student-plans-list');
+        try {
+            const res = await fetch('/api/student/plans');
+            const data = await res.json();
+            globalPlans = data;
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">No working plans available.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map((plan, index) => `
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-lg hover:border-primary-500/30 transition-all group flex flex-col justify-between h-full transform hover:-translate-y-1">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="p-2 bg-primary-50 text-primary-600 rounded-lg"><span class="material-symbols-rounded">article</span></span>
+                            <span class="text-[10px] text-slate-500">${new Date(plan.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-lg group-hover:text-primary-600 transition-colors line-clamp-2">${plan.title}</h3>
+                        <p class="text-xs text-slate-500 mt-2 line-clamp-3">${plan.summary || 'No summary available.'}</p>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                         <a href="${plan.content}" target="_blank" class="flex-1 flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-lg">
+                            <span class="material-symbols-rounded text-sm">visibility</span> Read
+                        </a>
+                        <button onclick="openPlanSummary(${index})" class="flex-1 flex items-center justify-center gap-2 text-xs font-bold text-white bg-primary-600 hover:bg-primary-500 transition-colors px-3 py-2 rounded-lg shadow-sm">
+                            <span class="material-symbols-rounded text-sm">info</span> Summary
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<p class="text-red-400 text-center">Error fetching plans.</p>';
+        }
+    }
+
+    function openPlanSummary(index) {
+        const plan = globalPlans[index];
+        if (!plan) return;
+
+        const modal = document.getElementById('plan-summary-modal');
+        document.getElementById('modal-plan-title').textContent = plan.title;
+        document.getElementById('modal-plan-summary').textContent = plan.summary || "No summary available.";
+        modal.classList.remove('hidden');
+    }
+
+    function closePlanModal() {
+        document.getElementById('plan-summary-modal').classList.add('hidden');
+    }
+</script>
+
+<style>
+    .bg-glass-card {
+        background: rgba(24, 27, 37, 0.6);
+        backdrop-filter: blur(12px);
+    }
+</style>
+{% endblock %}

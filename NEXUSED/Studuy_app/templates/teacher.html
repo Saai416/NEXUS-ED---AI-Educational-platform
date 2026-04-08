@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}NexusEd Teacher{% endblock %}
+
+{% block content %}
+<div
+    class="min-h-screen flex flex-col items-center justify-start pt-10 px-4 sm:px-6 bg-slate-50 text-slate-800 font-sans relative">
+
+    <!-- Ambient Background -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-40">
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100 rounded-full blur-[120px]">
+        </div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-100 rounded-full blur-[120px]">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl flex items-center justify-between mb-8 z-10">
+        <div class="flex items-center gap-4">
+            <a href="/logout"
+                class="size-10 rounded-xl hover:bg-slate-200 flex items-center justify-center transition-colors text-slate-500 hover:text-slate-900 border border-transparent hover:border-slate-300"
+                title="Logout">
+                <span class="material-symbols-rounded">arrow_back_ios_new</span>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">
+                    NexusEd Hub</h1>
+                <p class="text-slate-500 text-sm">Teacher Dashboard</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-full pl-1 pr-4 py-1 shadow-sm">
+            <div
+                class="size-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                T</div>
+            <span class="text-sm font-medium text-slate-700 hidden sm:block">{{ user.username.capitalize() }}</span>
+        </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="w-full max-w-4xl z-10 mb-8 flex gap-4 border-b border-slate-200 pb-1">
+        <button onclick="switchMainTab('upload')" id="tab-btn-upload"
+            class="px-4 py-2 text-sm font-medium text-slate-900 border-b-2 border-primary-600 transition-colors">Upload
+            Content</button>
+        <button onclick="switchMainTab('analytics')" id="tab-btn-analytics"
+            class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Student
+            Analytics
+            (AI)</button>
+        <button onclick="switchMainTab('plans')" id="tab-btn-plans"
+            class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Working
+            Plans</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-4xl z-10 space-y-8 pb-20">
+
+        <!-- TAB: UPLOAD CONTENT -->
+        <div id="main-tab-upload" class="animate-fade-in-up">
+            <form id="uploadForm" onsubmit="handleUpload(event)" class="space-y-6 max-w-2xl mx-auto">
+                <div class="space-y-2">
+                    <label for="contentName"
+                        class="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Content Title
+                        (Namespace)</label>
+                    <input type="text" id="contentName" name="content_name"
+                        placeholder="e.g., Intro to Biology - Week 1"
+                        class="w-full bg-white border border-slate-200 rounded-xl py-4 px-4 text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:border-primary-500 transition-all font-medium shadow-sm">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="source" value="manual" class="hidden peer" checked
+                            onchange="switchSourceTab('text')">
+                        <div
+                            class="border border-slate-200 bg-white rounded-xl p-4 flex flex-col items-center gap-2 transition-all hover:border-slate-300 text-slate-500 peer-checked:bg-primary-50 peer-checked:border-primary-500 peer-checked:text-primary-600 shadow-sm">
+                            <span class="material-symbols-rounded text-2xl">edit_note</span>
+                            <span class="text-sm font-medium">Text</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="source" value="url" class="hidden peer"
+                            onchange="switchSourceTab('url')">
+                        <div
+                            class="border border-slate-200 bg-white rounded-xl p-4 flex flex-col items-center gap-2 transition-all hover:border-slate-300 text-slate-500 peer-checked:bg-primary-50 peer-checked:border-primary-500 peer-checked:text-primary-600 shadow-sm">
+                            <span class="material-symbols-rounded text-2xl">link</span>
+                            <span class="text-sm font-medium">Link</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="source" value="file" class="hidden peer"
+                            onchange="switchSourceTab('file')">
+                        <div
+                            class="border border-slate-200 bg-white rounded-xl p-4 flex flex-col items-center gap-2 transition-all hover:border-slate-300 text-slate-500 peer-checked:bg-primary-50 peer-checked:border-primary-500 peer-checked:text-primary-600 shadow-sm">
+                            <span class="material-symbols-rounded text-2xl">upload_file</span>
+                            <span class="text-sm font-medium">PDF/File</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="source-text" class="source-content block space-y-2">
+                    <div
+                        class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-1 focus-within:border-primary-500 focus-within:bg-primary-50 transition-all">
+                        <textarea id="manualText" name="text"
+                            class="w-full h-[200px] bg-transparent border-none focus:ring-0 p-4 text-sm text-slate-900 resize-none placeholder:text-slate-400 leading-relaxed"
+                            placeholder="Paste your lecture notes..."></textarea>
+                    </div>
+                </div>
+
+                <div id="source-url" class="source-content hidden space-y-2">
+                    <div class="relative group">
+                        <span
+                            class="material-symbols-rounded absolute left-4 top-4 text-slate-400 group-focus-within:text-primary-500 transition-colors">link</span>
+                        <input type="url" id="urlInput" name="url" placeholder="https://example.com/article"
+                            class="w-full bg-white border border-slate-200 rounded-xl py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:border-primary-500 transition-all font-medium shadow-sm">
+                    </div>
+                </div>
+
+                <div id="source-file" class="source-content hidden space-y-2">
+                    <div class="border-2 border-dashed border-slate-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-primary-500 hover:bg-primary-50 transition-all cursor-pointer relative"
+                        onclick="document.getElementById('fileInput').click()">
+                        <span class="material-symbols-rounded text-4xl text-slate-400 mb-2">cloud_upload</span>
+                        <p class="text-sm text-slate-500 font-medium">Click to upload PDF or DOCX</p>
+                        <input type="file" id="fileInput" name="file" accept=".pdf,.txt,.docx,.doc"
+                            class="absolute inset-0 opacity-0 cursor-pointer">
+                    </div>
+                    <div id="fileNameDisplay" class="text-center text-xs text-primary-400 font-medium mt-2 hidden">
+                    </div>
+                </div>
+
+                <button type="submit" id="uploadBtn"
+                    class="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-rounded">cloud_upload</span> Upload & Process
+                </button>
+            </form>
+            <div id="status-area" class="mt-8 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hidden">
+                <p class="text-sm font-medium text-slate-800" id="status-message">Processing...</p>
+                <pre id="json-preview"
+                    class="mt-4 p-4 rounded-lg bg-slate-900 text-[10px] text-slate-300 font-mono overflow-x-auto max-h-40 border border-slate-800"></pre>
+            </div>
+        </div>
+
+        <!-- TAB: ANALYTICS -->
+        <div id="main-tab-analytics" class="hidden animate-fade-in-up">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-900">Student Predictive Analytics</h2>
+                    <button onclick="loadAnalytics()"
+                        class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1 rounded-lg transition-colors">Refresh
+                        AI</button>
+                </div>
+                <p class="text-sm text-slate-500">Real-time risk assessment using Random Forest ML Model.</p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-medium text-slate-500">
+                            <tr>
+                                <th class="px-6 py-3 rounded-tl-lg">Student</th>
+                                <th class="px-6 py-3">Performance (XP/Level)</th>
+                                <th class="px-6 py-3">Engagement (Posts/Days)</th>
+                                <th class="px-6 py-3 rounded-tr-lg">AI Risk Prediction</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analytics-table-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-500">Loading AI Data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: PLANS -->
+        <div id="main-tab-plans" class="hidden animate-fade-in-up">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Upload Plan -->
+                <div class="md:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <h3 class="font-bold text-lg mb-4 text-slate-900">Upload Working Plan</h3>
+                        <form onsubmit="handlePlanUpload(event)" class="space-y-4">
+                            <div>
+                                <label class="text-xs text-slate-500 uppercase font-semibold">Plan Title</label>
+                                <input type="text" name="planTitle" required
+                                    class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-900 focus:border-primary-500 mt-1 shadow-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-500 uppercase font-semibold">Document
+                                    (PDF/DOCX/Text)</label>
+                                <input type="file" name="planFile" required accept=".pdf,.txt,.docx,.doc"
+                                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100 mt-1">
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-3 rounded-xl transition-colors shadow-md">Upload
+                                Plan</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Plan List -->
+                <div class="md:col-span-2 space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 min-h-[400px] shadow-sm">
+                        <h3 class="font-bold text-lg mb-4 text-slate-900">Existing Plans</h3>
+                        <div id="plans-list" class="space-y-3">
+                            <p class="text-sm text-slate-500">Loading plans...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Tab Switching
+    function switchMainTab(tab) {
+        document.querySelectorAll('[id^="main-tab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('main-tab-' + tab).classList.remove('hidden');
+
+        document.querySelectorAll('[id^="tab-btn-"]').forEach(el => {
+            el.classList.remove('border-b-2', 'border-primary-600', 'text-slate-900');
+            el.classList.add('text-slate-500');
+        });
+        const btn = document.getElementById('tab-btn-' + tab);
+        btn.classList.add('border-b-2', 'border-primary-600', 'text-slate-900');
+        btn.classList.remove('text-slate-500');
+
+        if (tab === 'analytics') loadAnalytics();
+        if (tab === 'plans') loadPlans();
+    }
+
+    function switchSourceTab(source) {
+        document.querySelectorAll('.source-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('source-' + source).classList.remove('hidden');
+    }
+
+    // Analytics Logic
+    async function loadAnalytics() {
+        const tbody = document.getElementById('analytics-table-body');
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Running ML Classification...</td></tr>';
+
+        try {
+            const res = await fetch('/api/teacher/analytics');
+            const data = await res.json();
+
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">No student data found.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const pred = item.prediction;
+                let badgeClass = "bg-green-500/20 text-green-400 border-green-500/30";
+                if (pred.label === 'At Risk') badgeClass = "bg-red-500/20 text-red-400 border-red-500/30 animate-pulse";
+                if (pred.label === 'Stable') badgeClass = "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-900">${item.username}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-slate-500">Avg Score: ${Math.round(item.metrics.avg_quiz_score)}%</span>
+                            <span class="text-xs text-slate-500">Level: ${item.metrics.lessons_completed}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-slate-500">Posts: ${item.metrics.posts_count}</span>
+                            <span class="text-xs text-slate-500">Days Active: ${item.metrics.active_days}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeClass}">
+                            ${pred.label}
+                        </span>
+                        <p class="text-[10px] text-slate-400 mt-1">${pred.msg}</p>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-red-400">Error loading analytics: ${e}</td></tr>`;
+        }
+    }
+
+    // Plans Logic
+    async function loadPlans() {
+        const list = document.getElementById('plans-list');
+        try {
+            const res = await fetch('/api/teacher/plans');
+            const data = await res.json();
+
+            if (data.length === 0) {
+                list.innerHTML = '<p class="text-sm text-slate-500">No working plans uploaded yet.</p>';
+                return;
+            }
+
+            list.innerHTML = data.map(plan => `
+                <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-primary-500 transition-colors shadow-sm group">
+                    <div class="flex justify-between items-start mb-2">
+                         <h4 class="font-bold text-slate-900 line-clamp-1">${plan.title}</h4>
+                         <span class="text-[10px] text-slate-400">${new Date(plan.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3">
+                         <a href="${plan.content}" target="_blank" class="text-xs flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium">
+                            <span class="material-symbols-rounded text-sm">visibility</span> View
+                        </a>
+                        <span class="text-slate-300">|</span>
+                         <span class="text-[10px] text-slate-400 uppercase tracking-wider">${plan.type || 'DOC'}</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            list.innerHTML = `<p class="text-sm text-red-500">Error loading plans.</p>`;
+        }
+    }
+
+    async function handlePlanUpload(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('title', e.target.planTitle.value);
+        formData.append('file', e.target.planFile.files[0]);
+
+        try {
+            const res = await fetch('/api/teacher/upload_plan', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('Plan uploaded!');
+                e.target.reset();
+                loadPlans();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (err) {
+            alert('Upload failed');
+        }
+    }
+
+    // Original Upload Logic
+    async function handleUpload(e) {
+        console.log("handleUpload called");
+        e.preventDefault();
+        console.log("Default prevented");
+        const btn = document.getElementById('uploadBtn');
+        const statusArea = document.getElementById('status-area');
+        const statusMsg = document.getElementById('status-message');
+        const preview = document.getElementById('json-preview');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-rounded animate-spin">sync</span> Processing...';
+        statusArea.classList.remove('hidden');
+        statusMsg.textContent = 'Uploading & Processing...';
+
+        const formData = new FormData(e.target);
+
+        // Manual Validation
+        const contentName = formData.get("content_name");
+        if (!contentName || !contentName.trim()) {
+            statusArea.classList.remove('hidden');
+            statusMsg.textContent = 'Error: Content Title is required.';
+            statusMsg.className = "text-sm font-medium text-red-500";
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-rounded">cloud_upload</span> Upload & Process';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            // Force status area to show
+            statusArea.classList.remove('hidden');
+
+            if (res.ok) {
+                statusMsg.textContent = 'Success! Content Processed.';
+                statusMsg.className = "text-sm font-medium text-green-400";
+                preview.textContent = JSON.stringify(data, null, 2);
+                preview.classList.remove('hidden');
+
+                // Hide file name display
+                const fileDisplay = document.getElementById('fileNameDisplay');
+                if (fileDisplay) fileDisplay.classList.add('hidden');
+
+                e.target.reset();
+            } else {
+                statusMsg.textContent = 'Upload Failed: ' + (data.error || 'Unknown Error');
+                statusMsg.className = "text-sm font-medium text-red-400";
+                preview.textContent = JSON.stringify(data, null, 2);
+                preview.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error("Upload Error:", err);
+            statusArea.classList.remove('hidden');
+            statusMsg.textContent = 'Network Error: ' + err.message;
+            statusMsg.className = "text-sm font-medium text-red-500";
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-rounded">cloud_upload</span> Upload & Process';
+    }
+
+    // File input name
+    document.getElementById('fileInput')?.addEventListener('change', function (e) {
+        const fileName = e.target.files[0]?.name;
+        const display = document.getElementById('fileNameDisplay');
+        if (fileName && display) {
+            display.textContent = "Selected: " + fileName;
+            display.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}

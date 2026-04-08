@@ -1,0 +1,128 @@
+Implementation Plan: Fix Query Retrieval Issue
+Problem
+The first question "What are the lab facilities in northeastern university?" fails and returns "I don't know", while the second question with explicit instructions "give response from pinecone and neo4j" succeeds.
+
+Root Causes:
+
+Neo4j Cypher query generation fails to map vague terms ("lab facilities") to actual schema labels
+Vector search may not find relevant chunks due to terminology mismatch
+When both sources fail, the system correctly responds "I don't know"
+User Review Required
+IMPORTANT
+
+Testing Approach: After implementing these changes, you'll need to test the queries in the web interface. The fixes will improve the system's ability to handle vague queries by using broader pattern matching and fallback strategies.
+
+WARNING
+
+Performance Impact: The fallback query strategy may increase query execution time for failed queries (adds 1-2 additional Cypher query attempts). This is acceptable as it only affects queries that would otherwise fail.
+
+Proposed Changes
+Knowledge Graph Query Enhancement
+[MODIFY] 
+KG2.py
+Changes to 
+translate_question_to_cypher
+ function (lines 260-359):
+
+Enhance the system prompt to include better handling of vague/general queries:
+
+Add instructions for broad pattern matching when specific labels aren't found
+Add synonym expansion for common terms (lab → laboratory, institute, research facility)
+Add instructions to use case-insensitive matching with toLower()
+Add query term extraction to identify key concepts:
+
+Extract entities (e.g., "Northeastern University")
+Extract query types (e.g., "facilities", "professors", "programs")
+Use these to guide Cypher generation
+Changes to 
+ask_graph
+ function (lines 429-486):
+
+Add fallback query generation after max_retries:
+
+If all attempts fail, generate a broad pattern-matching query
+Use labels(n) and property matching with CONTAINS
+Example: MATCH (n) WHERE any(l IN labels(n) WHERE toLower(l) CONTAINS 'term') RETURN n, labels(n) LIMIT 10
+Improve error context passed to retry attempts:
+
+Include sample node IDs from schema in error messages
+Suggest alternative labels/relationships based on failed query
+Vector Search Improvement
+[MODIFY] 
+integrated_app.py
+Changes to 
+retrieve_vector
+ function (lines 90-143):
+
+Increase top_k parameter from 3 to 10:
+
+Retrieves more potential matches
+Increases chance of finding relevant information
+Add query preprocessing:
+
+Expand abbreviations (e.g., "NEU" → "Northeastern University")
+Add context to vague terms (e.g., "facilities" → "facilities and laboratories")
+Answer Synthesis Enhancement
+[MODIFY] 
+integrated_app.py
+Changes to 
+synthesize_answer
+ function (lines 187-231):
+
+Improve handling of empty results:
+When both sources are empty, provide more helpful guidance
+Suggest query reformulation instead of just "I don't know"
+Example: "I couldn't find information about 'lab facilities'. Try asking about 'research institutes' or 'laboratories' instead."
+Verification Plan
+Automated Tests
+Test File: Create c:\Studuy_app\test_query_fixes.py
+
+# Test cases for query retrieval fixes
+test_cases = [
+    "What are the lab facilities in northeastern university?",
+    "Tell me about research labs at NEU",
+    "What facilities does Northeastern have?",
+    "Who are the professors at Northeastern?",
+    "What programs does the university offer?"
+]
+Run command:
+
+cd c:\Studuy_app
+python test_query_fixes.py
+Expected Results:
+
+All queries should return relevant information (not "I don't know")
+Queries should complete within 5 seconds
+At least one source (vector or graph) should return results
+Manual Verification
+Start the application:
+
+cd c:\Studuy_app
+python app.py
+Login as a student and select the "NEU" topic (or relevant namespace)
+
+Test the following queries in the chat interface:
+
+Query	Expected Result
+"What are the lab facilities in northeastern university?"	Should return information about Institute for Experimental AI and RIVeR
+"Tell me about research labs"	Should return lab/institute information
+"What facilities does NEU have?"	Should return facilities information
+"Who are the professors?"	Should return professor names and details
+Verify the response includes:
+
+✅ Information from at least one source (vector or graph)
+✅ Relevant details (not generic "I don't know")
+✅ Response time under 5 seconds
+Check the console logs for:
+
+Cypher queries generated
+Whether fallback queries were used
+Vector search results count
+Browser Testing
+Use the browser tool to:
+
+Navigate to the student dashboard
+Select a topic
+Submit test queries
+Verify responses are displayed correctly
+Check for any JavaScript errors in console
